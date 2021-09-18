@@ -1,33 +1,41 @@
 const express = require("express");
 const session = require("express-session");
+var cookieParser = require('cookie-parser');
 const MongoDBSession = require("connect-mongodb-session")(session);
-require('dotenv').config();
-const mongoConnect = require('./util/database').mongoConnect;
+require("dotenv").config();
+const mongoConnect = require("./util/database").mongoConnect;
 
 const store = new MongoDBSession({
-    uri : process.env.MONGO_URI,
-    collection : 'mySessions'
+  uri: process.env.MONGO_URI,
+  collection: "mySessions",
 });
 const app = express();
 
-app.use(express.urlencoded ({extended : false}));
+
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());  
 
 app.use(
-    session({
-        secret : "secret",
-        resave : false,
-        store : store 
-    })
+  session({
+    secret: "secret",
+    resave: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60
+    },  
+    store: store
+  })
 );
 
-const isAuth = require('./middleware/is-auth');
-const controller = require('./controllers/controller');
+const isAuth = require("./middleware/is-auth");
+const controller = require("./controllers/controller");
 
 app.get("/", controller.getAllUsers);
 app.get("/dashboard", isAuth, controller.getUserDashboard);
 app.post("/login", controller.loginUser);
 app.post("/register", controller.requestForUserCreation);
-app.post('/validate', controller.createUser);
+app.post("/validate", controller.createUser);
+app.post("/logout", isAuth, controller.logout);
 
 mongoConnect(() => {
   app.listen(8000, () => {

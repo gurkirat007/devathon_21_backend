@@ -147,3 +147,13 @@ module.exports.updateUser = (req, res, next) => {
   const user = new User(req.body.name, req.body.email, req.body);
   user.education = req.body.education;
 }
+
+module.exports.logout = (req, res, next) => {
+  req.session.destroy((err) => {
+    if(!err) {
+      console.log('Destroyed the Session !');
+    } else {
+      console.log(err);
+    }
+  })
+}
