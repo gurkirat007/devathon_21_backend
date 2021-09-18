@@ -3,7 +3,7 @@ const { stringify } = require('querystring');
 const Schema = mongoose.Schema;
 
 const user = new Schema({
-    username : {
+    name : {
         type : String,
         required : true
     },

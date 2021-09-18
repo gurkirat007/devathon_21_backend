@@ -10,7 +10,6 @@ const store = new MongoDBSession({
     uri : mongoURI,
     collection : 'mySessions'
 });
-
 const app = express();
 
 app.use(
@@ -22,11 +21,14 @@ app.use(
     })
 );
 
-app.get("/", );
-app.get("/dashboard", );
-app.post("/login", );
-app.post("/register", );
-app.post("/update", );
+const isAuth = require('./middleware/is-auth');
+const controller = require('./controllers/controller');
+
+app.get("/", controller.getAllUsers);
+app.get("/dashboard", isAuth, );
+app.post("/login", controller.loginUser);
+app.post("/register", controller.createUser);
+app.post("/update", isAuth, );
 
 mongoose
   .connect(mongoURI, {
