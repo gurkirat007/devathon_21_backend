@@ -9,19 +9,21 @@ module.exports.getAllUsers = (req, res, next) => {
 
 module.exports.loginUser = async (req, res, next) => {
   const { email, password } = req.body;
-  const user = User.findOne({ email });
+  const user = await User.findOne({ email });
 
   if (!user) {
     res.status(401).json({ message: "Credentials Gone Bad !" });
   }
   try {
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (isMatch) {
-      req.session.isAuth = true;
-      res.status(200).json({ message: "Login Successful !" });
-    } else {
-      res.status(401).json({ message: "Credential Gone Bad !" });
-    }
+    let isMatch;
+    await bcrypt.compare(password, user.password, (err, response) => {
+       if(response) {
+        req.session.isAuth = true;
+        res.status(200).json({ message: "Login Successful !" });
+       } else {
+        res.status(401).json({ message: "Credentials Gone Bad !" });
+       }
+    });
   } catch (err) {
     console.log(err);
   }
@@ -40,13 +42,13 @@ module.exports.getUserDashboard = (req, res, next) => {
   if (user) {
     return res.status(200).json(user);
   } else {
-    return res.status(400).json({message : "User Not FOUND !"});
+    return res.status(400).json({message : "User Not FOUND !"});    
   }
 };
 
 module.exports.createUser = async (req, res, next) => {
   const { name, email, password } = req.body;
-  let user;
+  let user;//undefined
 
   try {
     user = await User.findOne({ email });

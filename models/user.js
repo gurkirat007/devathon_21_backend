@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { stringify } = require('querystring');
 const Schema = mongoose.Schema;
 
-const user = new Schema({
+const userSchema = new Schema({
     name : {
         type : String,
         required : true

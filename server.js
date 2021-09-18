@@ -12,11 +12,13 @@ const store = new MongoDBSession({
 });
 const app = express();
 
+
+app.use(express.urlencoded ({extended : false}));
+
 app.use(
     session({
         secret : "secret",
         resave : false,
-        saveUninitialized : false,
         store : store 
     })
 );
@@ -25,7 +27,7 @@ const isAuth = require('./middleware/is-auth');
 const controller = require('./controllers/controller');
 
 app.get("/", controller.getAllUsers);
-app.get("/dashboard", isAuth, );
+app.get("/dashboard", isAuth, controller.getAllUsers);
 app.post("/login", controller.loginUser);
 app.post("/register", controller.createUser);
 app.post("/update", isAuth, );
@@ -44,3 +46,4 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
+
