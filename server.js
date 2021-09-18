@@ -1,17 +1,14 @@
 const express = require("express");
 const session = require("express-session");
 const MongoDBSession = require("connect-mongodb-session")(session);
-const mongoose = require("mongoose");
-
-const mongoURI =
-  "mongodb+srv://parthiv:parthiv@joe-mama.wnc5e.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+require('dotenv').config();
+const mongoConnect = require('./util/database').mongoConnect;
 
 const store = new MongoDBSession({
-    uri : mongoURI,
+    uri : process.env.MONGO_URI,
     collection : 'mySessions'
 });
 const app = express();
-
 
 app.use(express.urlencoded ({extended : false}));
 
@@ -27,23 +24,13 @@ const isAuth = require('./middleware/is-auth');
 const controller = require('./controllers/controller');
 
 app.get("/", controller.getAllUsers);
-app.get("/dashboard", isAuth, controller.getAllUsers);
+app.get("/dashboard", isAuth, controller.getUserDashboard);
 app.post("/login", controller.loginUser);
-app.post("/register", controller.createUser);
-app.post("/update", isAuth, );
+app.post("/register", controller.requestForUserCreation);
+app.post('/validate', controller.createUser);
 
-mongoose
-  .connect(mongoURI, {
-    useNewUrlParser : true,
-    useUnifiedTopology : true
-  })
-  .then((res) => {
-    console.log("Connected !");
-    app.listen(8000, () => {
-      console.log(`Server started on port`);
-    });
-  })
-  .catch((err) => {
-    console.log(err);
+mongoConnect(() => {
+  app.listen(8000, () => {
+    console.log(`Server started on 8000`);
   });
-
+});
