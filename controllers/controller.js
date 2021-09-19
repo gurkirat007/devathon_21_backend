@@ -173,7 +173,7 @@ module.exports.updateUser = async (req, res, next) => {
     res.status(204).json({ message: "updated Successfully" });
   } catch (err) {
     console.log(err);
-    res.status(400).json({ message: "databse Error occured !" });
+    res.status(400).json({ message: "database Error occurred !" });
   }
 };
 

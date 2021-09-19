@@ -28,7 +28,7 @@ module.exports = class User {
 
   static fetchAll() {
     const db = getDb();
-    const users = db.collection("users").find({ OTP: undefined });
+    const users = db.collection("users").find({ OTP: null });
     return users;
   }
 
