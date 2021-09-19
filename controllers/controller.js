@@ -165,6 +165,7 @@ module.exports.updateUser = async (req, res, next) => {
   }
 
   user._id = userDB._id;
+  user.passwd = userDB.passwd;
   let newUser = await new User(user);
   console.log(newUser);
   try {
