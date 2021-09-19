@@ -1,12 +1,12 @@
 const getDb = require("../util/database").getDb;
 
 module.exports = class User {
-  constructor(_id, name, email, passwd, OTP) {
-    this._id = _id;
-    this.name = name;
-    this.email = email;
-    this.passwd = passwd;
-    this.OTP = OTP;
+  constructor(obj) {
+    if(obj) {
+      Object.assign(this, obj);
+    } else {
+      throw 'param object is NULL dumbo !';
+    }
   }
 
   save() {

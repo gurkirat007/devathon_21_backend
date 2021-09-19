@@ -1,15 +1,16 @@
 const bcrypt = require("bcrypt");
+const { use } = require("bcrypt/promises");
 const { urlencoded } = require("body-parser");
 const express = require("express");
 const User = require("../models/user");
 const otpGen = require("../util/randomOTP");
-const emailGen = require('../util/sendEmail');
-
+const emailGen = require("../util/sendEmail");
 
 module.exports.getAllUsers = async (req, res, next) => {
   let users;
-  try {users = await User.fetchAll();}
-  catch(err) {
+  try {
+    users = await User.fetchAll();
+  } catch (err) {
     console.log(err);
   }
   res.status(400).json(users);
@@ -19,12 +20,16 @@ module.exports.loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findByEmail(email);
 
+  console.log(password);
+
   if (!user) {
     res.status(401).json({ message: "Credentials Gone Bad !" });
   }
   try {
     let isMatch;
     await bcrypt.compare(password, user.password, (err, response) => {
+      if (err) throw err;
+      console.log(response);
       if (response) {
         req.session.isAuth = true;
         res.status(200).json({ message: "Login Successful !" });
@@ -38,12 +43,13 @@ module.exports.loginUser = async (req, res, next) => {
   }
 };
 
-module.exports.getUserDashboard = (req, res, next) => {
+module.exports.getUserDashboard = async (req, res, next) => {
   const { email } = req.body;
   let user;
 
   try {
-    user = User.findByEmail({ email });
+    user = await User.findByEmail(email);
+    console.log(user);
   } catch (err) {
     console.log(err);
     return res.status(400).json({ message: "DataBase Error Ocuured !" });
@@ -76,7 +82,7 @@ module.exports.requestForUserCreation = async (req, res, next) => {
 
   let otp = await otpGen();
 
-  if(user) {
+  if (user) {
     user.OTP = otp;
   }
 
@@ -92,13 +98,19 @@ module.exports.requestForUserCreation = async (req, res, next) => {
       .json({ message: "Hashing Error Ocuured ! Please Re-Try" });
   }
 
-
   // console.log(email);
   //creating the user
   var _id = null;
-  if(user && user._id)
-    _id = user._id;
-  const userr = await new User(_id, name, email, hashpwd, otp);
+  if (user && user._id) _id = user._id;
+  if (!user) {
+    user = {};
+    user._id = _id;
+    user.name = name;
+    user.email = email;
+    user.password = hashpwd;
+    user.OTP = otp;
+  }
+  const userr = await new User(user);
 
   // console.log("ZOR ZOR SE CHILLAKE BATA  " + userr.email);
 
@@ -124,7 +136,7 @@ module.exports.createUser = async (req, res, next) => {
   const OTP = req.body.OTP;
   const email = req.body.email;
 
-  let user ;
+  let user;
 
   try {
     user = await User.findByEmail(email);
@@ -132,28 +144,47 @@ module.exports.createUser = async (req, res, next) => {
     console.log(err);
   }
 
-  if(user.OTP == OTP) {
+  if (user.OTP == OTP) {
     delete user.OTP;
-    const userr = new User(user._id, user.name, user.email, user.passwd, null);
+    const userr = new User(user);
     await userr.save();
     res.status(200).json("User Created Successfully !");
   } else {
-    res.status(403).json('Wrong OTP dumbo');
+    res.status(403).json("Wrong OTP dumbo");
   }
 };
 
+module.exports.updateUser = async (req, res, next) => {
+  const user = req.body;
+  let userDB;
 
-module.exports.updateUser = (req, res, next) => {
-  const user = new User(req.body.name, req.body.email, req.body);
-  user.education = req.body.education;
-}
+  try {
+    userDB = await User.findByEmail(user.email);
+  } catch (err) {
+    console.log(err);
+  }
+
+  user._id = userDB._id;
+  let newUser = await new User(user);
+  console.log(newUser);
+  try {
+    await newUser.save();
+    res.status(204).json({ message: "updated Successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ message: "databse Error occured !" });
+  }
+};
 
 module.exports.logout = (req, res, next) => {
+  console.log(req.session);
   req.session.destroy((err) => {
-    if(!err) {
-      console.log('Destroyed the Session !');
+    if (!err) {
+      console.log("Destroyed the Session !");
+      res.status(200).json("logged Out Successfully !");
     } else {
       console.log(err);
+      res.status(400).json("unsuccessful log out !");
     }
-  })
-}
+  });
+};

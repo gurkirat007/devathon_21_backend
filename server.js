@@ -35,7 +35,8 @@ app.get("/dashboard", isAuth, controller.getUserDashboard);
 app.post("/login", controller.loginUser);
 app.post("/register", controller.requestForUserCreation);
 app.post("/validate", controller.createUser);
-app.post("/logout", isAuth, controller.logout);
+app.post("/logout", controller.logout);
+app.post('/update', isAuth, controller.updateUser);
 
 mongoConnect(() => {
   app.listen(8000, () => {
